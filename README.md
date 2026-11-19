@@ -54,7 +54,7 @@ GCP side, project `tree-sale` (number `15912314705`):
 
 The binding uses the mapped `repo_env` attribute rather than the token's `sub` claim, because GitHub now embeds numeric owner and repo IDs in `sub`, and a name-based subject binding never matches. The failure shows up as a 403 on `iam.serviceAccounts.getAccessToken`, which `firebase-tools` reports as "have you run firebase login?".
 
-The org repo's GitHub environment is named `Production` while the workflow asks for `production`. IAM stores that repo's binding as `:Production`. It has not been verified that a deploy from the org repo matches it; renaming the GitHub environment to `production` removes the question.
+Keep the GitHub environment and the IAM binding both lowercase `production`. A repo with a `Production` environment failed this way with a 403, and IAM treats `:production` and `:Production` members as duplicates, so `remove-iam-policy-binding` cannot remove the mixed-case one; edit the policy JSON with `get-iam-policy` / `set-iam-policy` instead.
 
 ### Giving another repo deploy access
 
