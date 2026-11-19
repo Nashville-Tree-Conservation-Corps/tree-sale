@@ -10,3 +10,6 @@ export const seasonOf = (date) => {
 export const seasonsOf = (orders) => {
     return [...new Set(orders.map((order) => seasonOf(order.date)))].sort().reverse()
 }
+
+// The season we are in right now (rolls over on July 1)
+export const currentSeason = () => seasonOf(new Date())

@@ -6,10 +6,11 @@ import { AllOrders } from "./AllOrders"
 
 const { mockGetAllOrders } = vi.hoisted(() => ({ mockGetAllOrders: vi.fn() }))
 
-vi.mock("../../services/orderServices", () => ({ getAllOrders: mockGetAllOrders }))
+vi.mock("../../services/orderServices", () => ({ getAllOrders: mockGetAllOrders, setCalled811: vi.fn() }))
 
 const order = (id, date) => ({
     id,
+    orderNumber: id,
     customerId: `cust-${id}`,
     customerName: `Customer ${id}`,
     city: "Nashville",
@@ -42,8 +43,8 @@ describe("AllOrders season filter", () => {
     it("defaults to the most recent season with orders and lists only seasons that have orders", async () => {
         renderAllOrders()
 
-        expect(await screen.findByText("this-season")).toBeInTheDocument()
-        expect(screen.queryByText("last-season")).not.toBeInTheDocument()
+        expect(await screen.findByText("#this-season")).toBeInTheDocument()
+        expect(screen.queryByText("#last-season")).not.toBeInTheDocument()
 
         const seasonSelect = screen.getByRole("combobox", { name: /season/i })
         expect(seasonSelect.value).toBe("2026-2027")
@@ -55,7 +56,7 @@ describe("AllOrders season filter", () => {
         mockGetAllOrders.mockResolvedValue([order("old", "2025-10-02T12:00:00.000Z")])
         renderAllOrders()
 
-        expect(await screen.findByText("old")).toBeInTheDocument()
+        expect(await screen.findByText("#old")).toBeInTheDocument()
         const seasonSelect = screen.getByRole("combobox", { name: /season/i })
         expect(seasonSelect.value).toBe("2025-2026")
         expect(within(seasonSelect).getAllByRole("option").map((option) => option.value)).toEqual(["2025-2026"])
@@ -63,12 +64,12 @@ describe("AllOrders season filter", () => {
 
     it("narrows the list to the chosen season", async () => {
         renderAllOrders()
-        await screen.findByText("this-season")
+        await screen.findByText("#this-season")
 
         const seasonSelect = screen.getByRole("combobox", { name: /season/i })
         await userEvent.selectOptions(seasonSelect, "2025-2026")
 
-        expect(screen.getByText("last-season")).toBeInTheDocument()
-        expect(screen.queryByText("this-season")).not.toBeInTheDocument()
+        expect(screen.getByText("#last-season")).toBeInTheDocument()
+        expect(screen.queryByText("#this-season")).not.toBeInTheDocument()
     })
 })

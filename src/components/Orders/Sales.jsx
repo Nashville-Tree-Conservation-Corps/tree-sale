@@ -71,6 +71,14 @@ export const Sales = () => {
                                 <span className="summary-value">{data.treesSold}</span>
                                 <span className="summary-label">Trees sold</span>
                             </div>
+                            <div className="summary-stat">
+                                <span className="summary-value">{data.plantings}</span>
+                                <span className="summary-label">Plantings</span>
+                            </div>
+                            <div className="summary-stat">
+                                <span className="summary-value">{data.guards}</span>
+                                <span className="summary-label">Guards</span>
+                            </div>
                         </section>
 
                         <h3 className="sales-heading">Most to Least Sold</h3>
