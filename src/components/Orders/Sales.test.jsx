@@ -16,6 +16,8 @@ function seasonPayload(overrides = {}) {
         unfulfilledOrders: 12,
         canceledOrders: 3,
         treesSold: 180,
+        plantings: 9,
+        guards: 7,
         byTree: [
             { name: "Red Maple", quantity: 40 },
             { name: "Dogwood", quantity: 20 }
@@ -43,6 +45,8 @@ describe("Sales", () => {
         expect(screen.getByText("12")).toBeInTheDocument()
         expect(screen.getByText("3")).toBeInTheDocument()
         expect(screen.getByText("180")).toBeInTheDocument()
+        expect(screen.getByText("9")).toBeInTheDocument()
+        expect(screen.getByText("7")).toBeInTheDocument()
         expect(screen.getByText("40 sold")).toBeInTheDocument()
         expect(mockGetSalesData).toHaveBeenCalledWith(undefined)
     })

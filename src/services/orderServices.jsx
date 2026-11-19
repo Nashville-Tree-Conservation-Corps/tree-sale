@@ -1,6 +1,6 @@
 import { getIdToken, logOut } from "./auth"
 
-export const authFetch = async (path) => {
+export const authFetch = async (path, { method = "GET", body } = {}) => {
     const token = await getIdToken()
 
     if (!token) {
@@ -9,7 +9,12 @@ export const authFetch = async (path) => {
     }
 
     const res = await fetch(`${import.meta.env.VITE_API_URL ?? ""}${path}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        method,
+        headers: {
+            Authorization: `Bearer ${token}`,
+            ...(body !== undefined && { "Content-Type": "application/json" })
+        },
+        ...(body !== undefined && { body: JSON.stringify(body) })
     })
 
     if (res.status === 401) {
@@ -45,4 +50,8 @@ export const getOrdersByCustomer = (customerId) => {
 
 export const getSalesData = (season) => {
     return authFetch(season ? `/api/sales?season=${season}` : "/api/sales")
+}
+
+export const setCalled811 = (orderId, called) => {
+    return authFetch(`/api/orders/${orderId}/811`, { method: "PUT", body: { called } })
 }

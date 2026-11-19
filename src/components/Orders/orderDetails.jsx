@@ -5,6 +5,7 @@ import { useState, useEffect } from "react"
 import { useParams, Link } from "react-router-dom"
 import { StatusBadge } from "./StatusBadge"
 import { SproutIcon } from "./SproutIcon"
+import { currentSeason, seasonOf } from "../../services/season"
 
 const formatDate = (date) =>
     new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
@@ -19,7 +20,7 @@ export const OrderDetails = () => {
     const [copyState, setCopyState] = useState(null)
 
     const copyOrderId = () => {
-        navigator.clipboard.writeText(order.id)
+        navigator.clipboard.writeText(String(order.orderNumber))
             .then(() => setCopyState("copied"))
             .catch(() => setCopyState("failed"))
             .then(() => setTimeout(() => setCopyState(null), 1500))
@@ -50,20 +51,26 @@ export const OrderDetails = () => {
     // Count how many of this homeowner's orders (including this one) are still pending
     const activeCount = [order, ...relatedOrders].filter(o => o.status === "PENDING").length
 
-    // Combine current order + related orders, keep only unfulfilled ones
-    const unfulfilledOrders = [order, ...relatedOrders].filter(o => o.status !== "FULFILLED")
+    // Unfulfilled inventory: this season only, and never canceled orders
+    const season = currentSeason()
+    const unfulfilledOrders = [order, ...relatedOrders].filter(o =>
+        o.status !== "FULFILLED" &&
+        o.status !== "CANCELED" &&
+        seasonOf(o.date) === season
+    )
 
-    // Build a flat inventory list: exclude the planting service line item itself,
-    // but tag each remaining item with whether its order requested planting
+    // Trees only, tagged with whether their order requested planting.
+    // Guards are listed separately so they never inflate the tree count.
     const inventoryItems = unfulfilledOrders.flatMap(o =>
         o.items
-            .filter(item => !item.name.toLowerCase().includes("planting"))
+            .filter(item => item.kind === "tree")
             .map(item => ({
                 ...item,
                 needsPlanting: o.includesPlanting,
                 orderId: o.id
             }))
     )
+    const guardCount = unfulfilledOrders.reduce((sum, o) => sum + (o.guardQuantity ?? 0), 0)
 
     return (
         <section className="app-container order-details">
@@ -74,10 +81,10 @@ export const OrderDetails = () => {
                     <button
                         className="order-id"
                         onClick={copyOrderId}
-                        aria-label="Copy order ID"
-                        title="Copy order ID"
+                        aria-label="Copy order number"
+                        title="Copy order number"
                     >
-                        <span className="order-id-value">{order.id}</span>
+                        <span className="order-id-value">#{order.orderNumber}</span>
                         {copyState === "copied" && <span className="order-id-copied">Copied</span>}
                         {copyState === "failed" && <span className="order-id-failed">Copy failed</span>}
                         {copyState === null && (
@@ -133,7 +140,7 @@ export const OrderDetails = () => {
                     ))}
                 </div>
                 <div className="detail-box detail-list">
-                    <span className="box-label">UNFULFILLED INVENTORY (THIS BATCH)</span>
+                    <span className="box-label">UNFULFILLED INVENTORY ({season})</span>
                     {inventoryItems.map((item, index) => (
                         <div key={index} className="line-row">
                             <div className="line-name-group">
@@ -143,6 +150,15 @@ export const OrderDetails = () => {
                             <span className="line-qty">x{item.quantity}</span>
                         </div>
                     ))}
+                    {inventoryItems.length === 0 && guardCount === 0 && (
+                        <span className="detail-text">Nothing unfulfilled this season.</span>
+                    )}
+                    {guardCount > 0 && (
+                        <div className="line-row">
+                            <span className="line-name">Tree guards</span>
+                            <span className="line-qty">x{guardCount}</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
