@@ -4,10 +4,11 @@ import { MemoryRouter } from "react-router-dom"
 import { Order } from "./Order"
 
 vi.mock("../../services/orderServices", () => ({
-    setCalled811: vi.fn()
+    setCalled811: vi.fn(),
+    fulfillOrder: vi.fn()
 }))
 
-import { setCalled811 } from "../../services/orderServices"
+import { setCalled811, fulfillOrder } from "../../services/orderServices"
 
 const testOrder = {
     id: "6f2b9c41e8d3a05517f04c2e",
@@ -77,5 +78,41 @@ describe("Order card", () => {
 
         expect(screen.getByText("2 trees")).toBeInTheDocument()
         expect(screen.getByText("3 guards")).toBeInTheDocument()
+    })
+
+    it("asks to confirm before fulfilling, and Cancel sends nothing", () => {
+        renderOrder()
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^fulfilled$/i }))
+        expect(screen.getByText(/can't be undone/i)).toBeInTheDocument()
+        expect(fulfillOrder).not.toHaveBeenCalled()
+
+        fireEvent.click(screen.getByRole("button", { name: /cancel/i }))
+        expect(screen.queryByText(/can't be undone/i)).not.toBeInTheDocument()
+        expect(fulfillOrder).not.toHaveBeenCalled()
+    })
+
+    it("fulfills after confirming and tells the list", async () => {
+        fulfillOrder.mockResolvedValue({})
+        const onFulfilled = vi.fn()
+        render(<MemoryRouter><Order order={testOrder} onFulfilled={onFulfilled} /></MemoryRouter>)
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^fulfilled$/i }))
+        fireEvent.click(screen.getByRole("button", { name: /yes, fulfilled/i }))
+
+        await waitFor(() => expect(onFulfilled).toHaveBeenCalledWith(testOrder.id))
+        expect(fulfillOrder).toHaveBeenCalledWith(testOrder.id)
+    })
+
+    it("shows the error and keeps the order when fulfilling fails", async () => {
+        fulfillOrder.mockRejectedValue(new Error("Squarespace refused the update."))
+        const onFulfilled = vi.fn()
+        render(<MemoryRouter><Order order={testOrder} onFulfilled={onFulfilled} /></MemoryRouter>)
+
+        fireEvent.click(screen.getByRole("checkbox", { name: /^fulfilled$/i }))
+        fireEvent.click(screen.getByRole("button", { name: /yes, fulfilled/i }))
+
+        expect(await screen.findByText(/squarespace refused/i)).toBeInTheDocument()
+        expect(onFulfilled).not.toHaveBeenCalled()
     })
 })

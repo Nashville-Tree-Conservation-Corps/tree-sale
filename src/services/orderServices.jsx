@@ -55,3 +55,7 @@ export const getSalesData = (season) => {
 export const setCalled811 = (orderId, called) => {
     return authFetch(`/api/orders/${orderId}/811`, { method: "PUT", body: { called } })
 }
+
+export const fulfillOrder = (orderId) => {
+    return authFetch(`/api/orders/${orderId}/fulfill`, { method: "POST" })
+}
