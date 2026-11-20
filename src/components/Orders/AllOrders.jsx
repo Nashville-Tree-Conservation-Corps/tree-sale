@@ -47,6 +47,14 @@ export const AllOrders = ({ statusFilter, pageTitle }) => {
             .catch((err) => setError(err.message))
     }, [statusFilter])
 
+    // After an order is fulfilled in Squarespace, drop it from a filtered list
+    // (Pending) or flip its status in the full list
+    const handleFulfilled = (orderId) => {
+        setOrders((current) => statusFilter
+            ? current.filter(o => o.id !== orderId)
+            : current.map(o => o.id === orderId ? { ...o, status: "FULFILLED" } : o))
+    }
+
     const loaded = loadedFor === (statusFilter ?? "ALL")
     const seasons = seasonsOf(orders)
 
@@ -138,7 +146,7 @@ export const AllOrders = ({ statusFilter, pageTitle }) => {
 
         <div className="order-list">
             {filteredOrders.map((orderObj) => (
-                <Order key={orderObj.id} order={orderObj} />
+                <Order key={orderObj.id} order={orderObj} onFulfilled={handleFulfilled} />
             ))}
         </div>
     </div>

@@ -3,17 +3,33 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { StatusBadge } from "./StatusBadge"
 import { SproutIcon } from "./SproutIcon"
-import { setCalled811 } from "../../services/orderServices"
+import { setCalled811, fulfillOrder } from "../../services/orderServices"
 
 const formatDate = (date) =>
     new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 
 const plural = (count, word) => `${count} ${word}${count === 1 ? "" : "s"}`
 
-export const Order = ({order}) => {
+export const Order = ({order, onFulfilled}) => {
     const [called811, setCalled] = useState(order.called811 === true)
     const [saveFailed, setSaveFailed] = useState(false)
+    const [confirming, setConfirming] = useState(false)
+    const [fulfilling, setFulfilling] = useState(false)
+    const [fulfillError, setFulfillError] = useState(null)
     const isActive = order.status === "PENDING"
+
+    // One-way: Squarespace has no "unfulfill", so ask before sending it
+    const confirmFulfill = () => {
+        setFulfilling(true)
+        setFulfillError(null)
+        fulfillOrder(order.id)
+            .then(() => onFulfilled?.(order.id))
+            .catch((err) => {
+                setFulfillError(err.message)
+                setFulfilling(false)
+                setConfirming(false)
+            })
+    }
 
     const toggle811 = () => {
         const next = !called811
@@ -76,6 +92,30 @@ export const Order = ({order}) => {
                         811 called
                     </button>
                     {saveFailed && <span className="check-811-error">Could not save. Try again.</span>}
+
+                    {!confirming ? (
+                        <button
+                            type="button"
+                            className="check-811 check-fulfilled"
+                            role="checkbox"
+                            aria-checked="false"
+                            onClick={() => setConfirming(true)}
+                        >
+                            <span className="check-811-box" aria-hidden="true"></span>
+                            Fulfilled
+                        </button>
+                    ) : (
+                        <span className="fulfill-confirm" role="group" aria-label="Confirm fulfilled">
+                            <span>Mark fulfilled in Squarespace? This can't be undone here.</span>
+                            <button type="button" className="fulfill-yes" onClick={confirmFulfill} disabled={fulfilling}>
+                                {fulfilling ? "Saving..." : "Yes, fulfilled"}
+                            </button>
+                            <button type="button" className="fulfill-no" onClick={() => setConfirming(false)} disabled={fulfilling}>
+                                Cancel
+                            </button>
+                        </span>
+                    )}
+                    {fulfillError && <span className="check-811-error">{fulfillError}</span>}
                 </div>
             )}
         </article>

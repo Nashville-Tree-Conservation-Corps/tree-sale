@@ -516,3 +516,43 @@
     font-size: 0.85rem;
     color: #a33;
 }
+
+.order-811 {
+    flex-wrap: wrap;
+}
+
+.fulfill-confirm {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.9rem;
+}
+
+.fulfill-yes,
+.fulfill-no {
+    padding: 4px 12px;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.fulfill-yes {
+    border: 1px solid #6D7F52;
+    background: #6D7F52;
+    color: var(--white);
+}
+
+.fulfill-no {
+    border: 1px solid var(--gray-border);
+    background: var(--white);
+    color: var(--forest-dark);
+}
+
+.fulfill-yes:disabled,
+.fulfill-no:disabled {
+    opacity: 0.6;
+    cursor: default;
+}

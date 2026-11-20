@@ -6,7 +6,7 @@ import { AllOrders } from "./AllOrders"
 
 const { mockGetAllOrders } = vi.hoisted(() => ({ mockGetAllOrders: vi.fn() }))
 
-vi.mock("../../services/orderServices", () => ({ getAllOrders: mockGetAllOrders, setCalled811: vi.fn() }))
+vi.mock("../../services/orderServices", () => ({ getAllOrders: mockGetAllOrders, setCalled811: vi.fn(), fulfillOrder: vi.fn() }))
 
 const order = (id, date) => ({
     id,
