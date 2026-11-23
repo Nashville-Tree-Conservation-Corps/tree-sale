@@ -6,6 +6,7 @@ import { useParams, Link } from "react-router-dom"
 import { StatusBadge } from "./StatusBadge"
 import { SproutIcon } from "./SproutIcon"
 import { currentSeason, seasonOf } from "../../services/season"
+import { formatPhone, telHref } from "../../services/phone"
 
 const formatDate = (date) =>
     new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
@@ -122,6 +123,9 @@ export const OrderDetails = () => {
                     <span className="box-label">HOMEOWNER</span>
                     <span className="homeowner-name">{order.customerName}</span>
                     <span className="detail-text">{order.address}, {order.city}, {order.state} {order.zipCode}</span>
+                    {telHref(order.phone) && (
+                        <a href={telHref(order.phone)} className="phone-link">{formatPhone(order.phone)}</a>
+                    )}
                 </div>
                 <div className="detail-box">
                     <span className="box-label">NOTES</span>

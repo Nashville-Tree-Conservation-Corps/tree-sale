@@ -115,4 +115,18 @@ describe("Order card", () => {
         expect(await screen.findByText(/squarespace refused/i)).toBeInTheDocument()
         expect(onFulfilled).not.toHaveBeenCalled()
     })
+
+    it("shows a tap-to-call link when the order has a phone number", () => {
+        renderOrder({ ...testOrder, phone: "6155550123" })
+
+        const link = screen.getByRole("link", { name: /call dana whitfield/i })
+        expect(link).toHaveAttribute("href", "tel:6155550123")
+        expect(link).toHaveTextContent("(615) 555-0123")
+    })
+
+    it("shows no phone link when there is no number", () => {
+        renderOrder({ ...testOrder, phone: null })
+
+        expect(screen.queryByRole("link", { name: /call/i })).not.toBeInTheDocument()
+    })
 })
