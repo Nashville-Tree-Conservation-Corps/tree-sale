@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { getAllOrders } from "../../services/orderServices"
 import { SearchBar } from "./SearchBar"
 import { Order } from "./Order"
+import { PrintSheet } from "./PrintSheet"
 import { SproutIcon } from "./SproutIcon"
 import { Loading } from "../Loading"
 import { PageTitle } from "../PageTitle"
@@ -35,6 +36,7 @@ export const AllOrders = ({ statusFilter, pageTitle }) => {
     const [filterOption, setFilterOption] = useState("none")
     const [seasonOption, setSeasonOption] = useState(null)
     const [sortOption, setSortOption] = useState("newest")
+    const [zipOption, setZipOption] = useState("all")
 
     useEffect(() => {
         setError(null)
@@ -60,6 +62,14 @@ export const AllOrders = ({ statusFilter, pageTitle }) => {
 
     let filtered = seasonOption ? orders.filter(order => seasonOf(order.date) === seasonOption) : orders
 
+    // Zip codes present in this season's orders; a stale choice falls back to all
+    const zips = [...new Set(filtered.map(order => order.zipCode).filter(Boolean))].sort()
+    const activeZip = zips.includes(zipOption) ? zipOption : "all"
+
+    if (activeZip !== "all") {
+        filtered = filtered.filter(order => order.zipCode === activeZip)
+    }
+
     if (searchTerm !== "") {
         filtered = filtered.filter(order =>
             order.customerName
@@ -78,6 +88,8 @@ export const AllOrders = ({ statusFilter, pageTitle }) => {
 
     const filteredOrders = sortOrders(filtered, sortOption)
 
+    const printTitle = `Pending Orders${seasonOption ? ` · ${seasonOption}` : ""}${activeZip !== "all" ? ` · ${activeZip}` : " · All zip codes"}`
+
     return (
     <div className="app-container">
         <PageTitle>Tree Sale</PageTitle>
@@ -95,6 +107,20 @@ export const AllOrders = ({ statusFilter, pageTitle }) => {
                     >
                         {seasons.map((season) => (
                             <option key={season} value={season}>{season}</option>
+                        ))}
+                    </select>
+                </label>
+
+                <label className="control-select">
+                    <span className="control-select-label">Zip code</span>
+                    <select
+                        value={activeZip}
+                        onChange={(event) => setZipOption(event.target.value)}
+                        disabled={zips.length === 0}
+                    >
+                        <option value="all">All zip codes</option>
+                        {zips.map((zip) => (
+                            <option key={zip} value={zip}>{zip}</option>
                         ))}
                     </select>
                 </label>
@@ -124,6 +150,17 @@ export const AllOrders = ({ statusFilter, pageTitle }) => {
                 </label>
 
                 <SearchBar setSearchTerm={setSearchTerm} />
+
+                {statusFilter === "PENDING" && (
+                    <button
+                        type="button"
+                        className="print-btn"
+                        onClick={() => window.print()}
+                        disabled={filteredOrders.length === 0}
+                    >
+                        Print
+                    </button>
+                )}
             </div>
         </div>
 
@@ -149,5 +186,7 @@ export const AllOrders = ({ statusFilter, pageTitle }) => {
                 <Order key={orderObj.id} order={orderObj} onFulfilled={handleFulfilled} />
             ))}
         </div>
+
+        {statusFilter === "PENDING" && <PrintSheet orders={filteredOrders} title={printTitle} />}
     </div>
 )}
