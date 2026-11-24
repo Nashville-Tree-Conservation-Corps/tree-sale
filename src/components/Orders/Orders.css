@@ -595,3 +595,108 @@
     font-weight: 600;
     color: var(--forest-dark);
 }
+
+/* ---- Print ---- */
+
+.print-btn {
+    padding: 8px 16px;
+    border: 1px solid var(--forest-dark);
+    border-radius: 8px;
+    background: var(--forest-dark);
+    color: var(--white);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.print-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+.print-sheet {
+    display: none;
+}
+
+@media print {
+    /* Print only the sheet: hide the nav and everything else on the page */
+    .navbar,
+    .app-container > :not(.print-sheet) {
+        display: none !important;
+    }
+
+    body {
+        background: #fff;
+        color: #000;
+    }
+
+    .app-container {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        border-radius: 0;
+        box-shadow: none;
+        background: #fff;
+    }
+
+    .print-sheet {
+        display: block;
+        font-size: 11pt;
+        line-height: 1.35;
+    }
+
+    .print-header h1 {
+        margin: 0;
+        font-size: 16pt;
+    }
+
+    .print-header p {
+        margin: 2px 0 12px;
+    }
+
+    .print-zip-group {
+        break-before: page;
+    }
+
+    .print-zip-group:first-of-type {
+        break-before: auto;
+    }
+
+    .print-zip {
+        margin: 0 0 8px;
+        padding-bottom: 4px;
+        border-bottom: 2px solid #000;
+        font-size: 14pt;
+    }
+
+    .print-zip span {
+        font-weight: 400;
+        font-size: 11pt;
+    }
+
+    .print-order {
+        break-inside: avoid;
+        padding: 8px 0;
+        border-bottom: 1px solid #999;
+    }
+
+    .print-order-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .print-items {
+        margin: 4px 0 0;
+        padding-left: 20px;
+    }
+
+    .print-planting {
+        margin-top: 2px;
+        font-weight: 600;
+    }
+
+    .print-box {
+        font-size: 13pt;
+    }
+}

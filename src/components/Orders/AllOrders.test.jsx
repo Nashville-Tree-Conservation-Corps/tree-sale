@@ -73,3 +73,54 @@ describe("AllOrders season filter", () => {
         expect(screen.queryByText("#this-season")).not.toBeInTheDocument()
     })
 })
+
+describe("AllOrders zip filter and printing", () => {
+    const pending = (id, zip, extra = {}) => ({ ...order(id, "2026-11-14T12:00:00.000Z"), zipCode: zip, address: "1 Oak St", ...extra })
+
+    beforeEach(() => {
+        vi.clearAllMocks()
+        mockGetAllOrders.mockResolvedValue([
+            pending("a", "37206"),
+            pending("b", "37215", { items: [{ name: "White Oak", variant: "Size: 3 inch", customizations: [], kind: "tree", quantity: 1 }] }),
+            pending("c", "37206")
+        ])
+        window.print = vi.fn()
+    })
+
+    const renderPending = () => render(
+        <MemoryRouter>
+            <AllOrders statusFilter="PENDING" pageTitle="Pending Orders" />
+        </MemoryRouter>
+    )
+
+    it("filters the list to one zip code", async () => {
+        const user = userEvent.setup()
+        renderPending()
+        await screen.findByText("#b", { selector: ".order-row-id" })
+
+        await user.selectOptions(screen.getByLabelText("Zip code"), "37215")
+
+        const list = document.querySelector(".order-list")
+        expect(within(list).getByText("#b")).toBeInTheDocument()
+        expect(within(list).queryByText("#a")).not.toBeInTheDocument()
+    })
+
+    it("prints, with a sheet grouped by zip that shows sizes", async () => {
+        const user = userEvent.setup()
+        renderPending()
+        const sheet = await screen.findByLabelText("Printable orders", { selector: "section" })
+
+        expect(within(sheet).getByRole("heading", { name: /^37206/ })).toBeInTheDocument()
+        expect(within(sheet).getByRole("heading", { name: /^37215/ })).toBeInTheDocument()
+        expect(within(sheet).getByText("(Size: 3 inch)")).toBeInTheDocument()
+
+        await user.click(screen.getByRole("button", { name: "Print" }))
+        expect(window.print).toHaveBeenCalled()
+    })
+
+    it("has no Print button on lists other than Pending", async () => {
+        renderAllOrders()
+        await screen.findAllByText(/Customer/)
+        expect(screen.queryByRole("button", { name: "Print" })).not.toBeInTheDocument()
+    })
+})
