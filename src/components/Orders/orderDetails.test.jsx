@@ -118,3 +118,23 @@ describe("OrderDetails unfulfilled inventory", () => {
         expect(box).toHaveTextContent("x4")
     })
 })
+
+describe("OrderDetails size variations", () => {
+    const oak = { name: "White Oak", variant: "Size: 3 inch", customizations: ["Note: Back yard"], kind: "tree", quantity: 1, price: "150.00" }
+
+    beforeEach(() => {
+        getOrderById.mockResolvedValue({ ...testOrder, items: [oak] })
+        getOrdersByCustomer.mockResolvedValue([])
+    })
+
+    afterEach(() => {
+        vi.restoreAllMocks()
+    })
+
+    it("shows the size and customer text under the tree in purchases and inventory", async () => {
+        renderDetails()
+
+        expect(await screen.findAllByText("Size: 3 inch")).toHaveLength(2)
+        expect(screen.getAllByText("Note: Back yard")).toHaveLength(2)
+    })
+})
