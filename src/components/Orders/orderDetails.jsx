@@ -11,8 +11,20 @@ import { formatPhone, telHref } from "../../services/phone"
 const formatDate = (date) =>
     new Date(date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
 
+const itemTitle = (item) => item.variant ? `${item.name} (${item.variant})` : item.name
+
 const summarizeItems = (items) =>
-    items.map(item => item.quantity > 1 ? `${item.name} x${item.quantity}` : item.name).join(", ")
+    items.map(item => item.quantity > 1 ? `${itemTitle(item)} x${item.quantity}` : itemTitle(item)).join(", ")
+
+// Product name, then the size/option and any customer text underneath so the
+// planter can't miss which version of a tree was ordered
+const ItemName = ({ item }) => (
+    <span className="line-name">
+        {item.name}
+        {item.variant && <span className="line-variant">{item.variant}</span>}
+        {item.customizations?.map(text => <span key={text} className="line-variant">{text}</span>)}
+    </span>
+)
 
 export const OrderDetails = () => {
     const { orderId } = useParams()
@@ -138,7 +150,7 @@ export const OrderDetails = () => {
                     <span className="box-label">PURCHASES</span>
                     {order.items.map((item, index) => (
                         <div key={index} className="line-row">
-                            <span className="line-name">{item.name}</span>
+                            <ItemName item={item} />
                             <span className="line-date">{formatDate(order.date)}</span>
                         </div>
                     ))}
@@ -148,7 +160,7 @@ export const OrderDetails = () => {
                     {inventoryItems.map((item, index) => (
                         <div key={index} className="line-row">
                             <div className="line-name-group">
-                                <span className="line-name">{item.name}</span>
+                                <ItemName item={item} />
                                 {item.needsPlanting && <SproutIcon />}
                             </div>
                             <span className="line-qty">x{item.quantity}</span>
